@@ -14,7 +14,7 @@ export default class GameController extends HTMLElement {
              <div id="controller-menu">
         Width: <input type="range" min="3" max="12" value="3" id="input-width"> 
         Height: <input type="range" min="3" max="12" value="3"  id="input-height">  
-        <span id="winrow-container">Win row: <input type="range" min="3" max="3"  value="3"  id="input-winrow"><output id="output-winrow">3</output></span>
+        <span id="winrow-container">Win row: <input type="range" min="3" max="3"  value="3" disabled id="input-winrow"><output id="output-winrow">3</output></span>
     </div>
                 <div id="game">
                     <div id="field"></div>
@@ -107,6 +107,7 @@ export default class GameController extends HTMLElement {
         this.outputWinRow.value = this.winRow;
         this.inputWinRow.value = this.winRow;
         this.inputWinRow.max = maxRow;
+        maxRow > 3 ? this.inputWinRow.disabled = false : this.inputWinRow.disabled = true;
     }
 
     createBoard(width, height) {
