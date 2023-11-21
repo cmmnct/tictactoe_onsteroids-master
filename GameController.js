@@ -12,37 +12,44 @@ export default class GameController extends HTMLElement {
         this.shadowRoot.innerHTML = `
         <link rel="stylesheet" href="style.css">
              <div id="controller-menu">
-        Width: <input type="range" min="3" max="12" value="3" id="inputWidth"> 
-        Height: <input type="range" min="3" max="12" value="3"  id="inputHeight">  
-        Win row: <input type="range" min="3" max="6"  value="3"  id="inputWinRow">
+        Width: <input type="range" min="3" max="12" value="3" id="input-width"> 
+        Height: <input type="range" min="3" max="12" value="3"  id="input-height">  
+        <span id="winrow-container">Win row: <input type="range" min="3" max="3"  value="3"  id="input-winrow"><output id="output-winrow">3</output></span>
     </div>
                 <div id="game">
                     <div id="field"></div>
                     <div id="score">
                         <div>
                             <div><img src="/images/playerX.svg" style="width: 24px"></div>
-                            <input type="text" disabled id="score_kruisje">
+                            <input type="text" disabled id="score-kruisje">
                         </div>
                         <div>
                             <div><img src="/images/playerO.svg" style="width: 24px"></div>
-                            <input type="text" disabled id="score_rondje">
+                            <input type="text" disabled id="score-rondje">
                         </div>
                     </div>
-                    <button id="btn_start">Play again</button>
+                    <button id="btn-start">Play again</button>
                 </div>
     `;
         this.controllerMenu = this.shadowRoot.getElementById('controller-menu')
         this.field = this.shadowRoot.getElementById('field');
         this.score = this.shadowRoot.getElementById('score');
-        this.btnStart = this.shadowRoot.getElementById('btn_start');
-        this.scoreKruisje = this.shadowRoot.getElementById('score_kruisje');
-        this.scoreRondje = this.shadowRoot.getElementById('score_rondje');
+        this.btnStart = this.shadowRoot.getElementById('btn-start');
+        this.scoreKruisje = this.shadowRoot.getElementById('score-kruisje');
+        this.scoreRondje = this.shadowRoot.getElementById('score-rondje');
+        this.outputWinRow = this.shadowRoot.getElementById('output-winrow');
+        this.inputWinRow = this.shadowRoot.getElementById('input-winrow');
+        this.winrowContainer = this.shadowRoot.getElementById('winrow-container');
         this.init();
     }
 
-    fieldWidth = 3;
-    fieldHeight = 3;
+
+    fieldDimensions = {
+        width: 3,
+        height: 3
+    }
     winRow = 3;
+    maxRow = 3;
     boardArray = [];
     step = 0;
     playerX = new Player('x', 0);
@@ -56,7 +63,7 @@ export default class GameController extends HTMLElement {
         this.domElements.addEventListener('click', this.onMove.bind(this));
         this.btnStart.addEventListener('click', this.clearAll.bind(this));
 
-        this.boardArray = this.createBoard(this.fieldWidth, this.fieldHeight); // maak een data array met het gekoen aantal vlakken
+        this.boardArray = this.createBoard(this.fieldDimensions.width, this.fieldDimensions.height); // maak een data array met het gekoen aantal vlakken
         console.log(this.boardArray)
         if (this.currentPlayer) { // als het spel al gespeeld is...
             this.togglePlayer(); // switch de player
@@ -71,7 +78,7 @@ export default class GameController extends HTMLElement {
         this.step = 0;
         this.domElements.innerHTML = '';
         this.readyForInit = false;
-        this.boardArray = this.createBoard(this.fieldWidth, this.fieldHeight);
+        this.boardArray = this.createBoard(this.fieldDimensions.width, this.fieldDimensions.height);
         console.log(this.boardArray)
         this.domElements.innerHTML = '';
         this.field.appendChild(this.getDomElements());
@@ -79,18 +86,28 @@ export default class GameController extends HTMLElement {
     updateSettings(event) {
         console.log(event.target.value);
         switch (event.target.id) {
-            case 'inputWidth': this.fieldWidth = Number(event.target.value);
+            case 'input-width': this.fieldDimensions.width = Number(event.target.value);
+                this.checkValidityWinRow();
                 break;
-            case 'inputHeight': this.fieldHeight = Number(event.target.value);
+            case 'input-height': this.fieldDimensions.height = Number(event.target.value);
+                this.checkValidityWinRow();
                 break;
-            case 'inputWinRow': this.winRow = Number(event.target.value);
+            case 'input-winrow': this.winRow = Number(event.target.value);
+                this.outputWinRow.value = Number(event.target.value);
                 break;
 
         };
         this.clearAll();
     }
 
+    checkValidityWinRow() {
+        this.winRow = Math.min(this.fieldDimensions.height, this.fieldDimensions.width, this.winRow);
+        let maxRow = Math.min(this.fieldDimensions.height, this.fieldDimensions.width, 6);
 
+        this.outputWinRow.value = this.winRow;
+        this.inputWinRow.value = this.winRow;
+        this.inputWinRow.max = maxRow;
+    }
 
     createBoard(width, height) {
         let arr = Array.apply(null, Array(height)).map(row =>
@@ -141,7 +158,7 @@ export default class GameController extends HTMLElement {
             if (this.evaluateMove(thisX, thisY)) {
                 this.endAndReset()
             }
-            else if (this.step === (this.fieldWidth * this.fieldHeight)) {
+            else if (this.step === (this.fieldDimensions.width * this.fieldDimensions.height)) {
                 this.btnStart.style.visibility = 'visible';
             }
             else this.togglePlayer();
@@ -169,7 +186,7 @@ export default class GameController extends HTMLElement {
             if (x + i < this.boardArray[0].length) {
                 if (this.boardArray[y][x + i] === this.currentPlayer.name) {
                     testArray[0][center + i] = true;
-                    
+
                 }
             }
             //v-
@@ -184,7 +201,7 @@ export default class GameController extends HTMLElement {
                     testArray[1][center + i] = true;
                 }
             }
-            
+
             //dia1
             if (y - i > -1 && x - i > -1) {
                 if (this.boardArray[y - i][x - i] === this.currentPlayer.name) {
@@ -222,7 +239,7 @@ export default class GameController extends HTMLElement {
                     }
                     if (check.length === this.winRow) {
                         win = true;
-                      //  this.highlightWinningRow(combination);
+                        //  this.highlightWinningRow(combination);
                     }
                 }
             )
